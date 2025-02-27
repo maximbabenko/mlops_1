@@ -1,0 +1,22 @@
+schema: '2.0'
+stages:
+  preprocess_data:
+    cmd: python data_preprocessing.py data data
+    deps:
+    - path: data/winequality-red.csv
+      hash: md5
+      md5: 2daeecee174368f8a33b82c8cccae3a5
+      size: 84199
+    - path: data/winequality-white.csv
+      hash: md5
+      md5: 5d9ff0f7f716dace19e3ab4578775fd7
+      size: 264426
+    - path: data_preprocessing.py
+      hash: md5
+      md5: 03e656865bee513c48184458becfe390
+      size: 2137
+    outs:
+    - path: data/cleaned_normalized_wine_data.csv
+      hash: md5
+      md5: afa424ed142615936ead3575ce2717ff
+      size: 1444827

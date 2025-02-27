@@ -1,0 +1,5 @@
+dvc
+dvc-ssh
+pandas
+scikit-learn
+mlflow

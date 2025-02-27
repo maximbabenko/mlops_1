@@ -1,0 +1,9 @@
+stages:
+  preprocess_data:
+    cmd: python data_preprocessing.py data data
+    deps:
+    - data/winequality-red.csv
+    - data/winequality-white.csv
+    - data_preprocessing.py
+    outs:
+    - data/cleaned_normalized_wine_data.csv

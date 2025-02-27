@@ -1,0 +1,56 @@
+stages:
+  - dvc_pipeline
+  - deploy_report
+
+variables:
+  PATH_TO_DATA: "/home/max/mlops/hw2"
+
+# Добавляем глобальное определение кэша
+cache:
+  paths:
+    - .cache/pip
+    - venv/
+
+before_script:
+  - python -m venv venv       # Создаем виртуальное окружение
+  - source venv/bin/activate  # Активируем виртуальное окружение
+  - pip install --upgrade pip
+  - pip install -r requirements.txt
+  # Настройка SSH
+  - 'which ssh-agent || ( apt-get update -y && apt-get install -y openssh-client )'
+  - mkdir -p ~/.ssh
+  - ssh-keyscan -H -v -p $SSH_PORT $SSH_HOST >> ~/.ssh/known_hosts 2>&1
+  - chmod 700 ~/.ssh
+  - echo "$SSH_PRIVATE_KEY_BASE64" | base64 -d > ~/.ssh/id_rsa
+  - chmod 600 ~/.ssh/id_rsa
+  - eval $(ssh-agent -s)
+  - ssh-add ~/.ssh/id_rsa
+
+dvc_pipeline:
+  stage: dvc_pipeline
+  image: python:3.8
+  script:
+    # Проверка SSH-соединения перед операциями DVC
+    - ssh -p $SSH_PORT $SSH_USER@$SSH_HOST "echo 'SSH connection successful'"
+    # Добавляем удаленное хранилище
+    - dvc remote modify storage url ssh://$SSH_USER@$SSH_HOST:$SSH_PORT$PATH_TO_DATA
+    # Загружаем данные из удаленного хранилища
+    - dvc pull
+    # Запускаем пайплайн обработки данных
+    - dvc repro
+    # Загружаем результаты обработки данных в удаленное хранилище
+    - dvc push
+  only:
+    - main
+
+pages:
+  stage: deploy_report
+  script:
+    - echo "Deploying report to GitLab Pages..."
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+
+Найти еще
